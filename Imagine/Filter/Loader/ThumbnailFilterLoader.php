@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the `liip/LiipImagineBundle` project.
- *
- * (c) https://github.com/liip/LiipImagineBundle/graphs/contributors
- *
- * For the full copyright and license information, please view the LICENSE.md
- * file that was distributed with this source code.
- */
-
 namespace Liip\ImagineBundle\Imagine\Filter\Loader;
 
 use Imagine\Filter\Basic\Thumbnail;
@@ -34,8 +25,7 @@ class ThumbnailFilterLoader implements LoaderInterface
             $filter = ImageInterface::FILTER_UNDEFINED;
         }
 
-        $width = isset($options['size'][0]) ? $options['size'][0] : null;
-        $height = isset($options['size'][1]) ? $options['size'][1] : null;
+        list($width, $height) = $options['size'];
 
         $size = $image->getSize();
         $origWidth = $size->getWidth();
@@ -52,6 +42,10 @@ class ThumbnailFilterLoader implements LoaderInterface
         if (($origWidth > $width || $origHeight > $height)
             || (!empty($options['allow_upscale']) && ($origWidth !== $width || $origHeight !== $height))
         ) {
+            if (($origWidth < $width || $origHeight < $height) && !empty($options['allow_upscale'])) {
+                $upscale = new UpscaleFilterLoader();
+                $image = $upscale->load($image, array('min' => array($width, $height)));
+            }
             $filter = new Thumbnail(new Box($width, $height), $mode, $filter);
             $image = $filter->apply($image);
         }
